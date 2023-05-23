@@ -41,6 +41,36 @@ const App = () => {
     applyFilter();
   }, [searchTerm, enabledTags, state.data]);
 
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith("#model_")) {
+        const cardId = hash.substring(7);
+        const selectedCard = state.data.find((card) => card.application_name === cardId);
+        if (selectedCard) {
+          openModal(selectedCard);
+        }
+      } else {
+        closeModal();
+      }
+    };
+  
+    const handleInitialHashChange = () => {
+      setTimeout(() => {
+        handleHashChange();
+      }, 100);
+    };
+  
+    handleInitialHashChange(); // Call the function when the component mounts to handle initial hash
+  
+    window.addEventListener("hashchange", handleHashChange);
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, [state.data]);
+  
+
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
   };
@@ -109,13 +139,16 @@ const App = () => {
   const openModal = (data) => {
     setSelectedData(data);
     setIsModalOpen(true);
+    const cardId = `model_${data.application_name}`;
+    window.location.hash = cardId;
   };
-
+  
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedData(null);
+    history.pushState("", document.title, window.location.pathname); 
   };
-
+  
   return (
     <>
       <Hero />
