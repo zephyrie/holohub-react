@@ -1,22 +1,28 @@
-import React, { useEffect, useReducer, useState } from 'react';
+import React, { useEffect, useReducer, useState } from "react";
+import { Transition, Dialog } from '@headlessui/react';
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm'
 
-import { reducer, initialState, actionTypes } from './reducers';
-import Card from './card';
-import Hero from './hero';
+import { reducer, initialState, actionTypes } from "./reducers";
+import Card from "./Card";
+import Hero from "./Hero";
 
 const App = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [enabledTags, setEnabledTags] = useState([]);
   const [allTags, setAllTags] = useState([]);
+  const [selectedData, setSelectedData] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchData = async () => {
     dispatch({ type: actionTypes.FETCH_DATA_START });
 
     try {
-      const response = await fetch('aggregate_metadata.json');
+      const response = await fetch("aggregate_metadata.json");
       if (!response.ok) {
-        throw new Error('Failed to fetch data');
+        throw new Error("Failed to fetch data");
       }
 
       const data = await response.json();
@@ -60,8 +66,10 @@ const App = () => {
         }
       });
     });
-  
-    const filteredTags = Array.from(tagsCountMap.entries()).filter(([, count]) => count >= 3);
+
+    const filteredTags = Array.from(tagsCountMap.entries()).filter(
+      ([, count]) => count >= 3
+    );
     const extractedTags = filteredTags.map(([tag]) => tag).sort();
     setAllTags(extractedTags);
   };
@@ -70,24 +78,26 @@ const App = () => {
     const filteredData = state.data.filter((item) => {
       const { readme, application } = item;
       const { tags } = application;
-  
+
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
       const matchesSearchTerm =
         readme.toLowerCase().includes(lowerCaseSearchTerm) ||
         tags.some((tag) => tag.toLowerCase().includes(lowerCaseSearchTerm));
-  
-      if (searchTerm === '' && enabledTags.length === 0) {
+
+      if (searchTerm === "" && enabledTags.length === 0) {
         // No search term and no enabled tags, return all data
         return true;
-      } else if (searchTerm === '' && enabledTags.length > 0) {
+      } else if (searchTerm === "" && enabledTags.length > 0) {
         // No search term but has enabled tags, match any enabled tag
         return enabledTags.some((tag) => tags.includes(tag));
-      } else if (searchTerm !== '' && enabledTags.length === 0) {
+      } else if (searchTerm !== "" && enabledTags.length === 0) {
         // Has search term but no enabled tags, match the search term
         return matchesSearchTerm;
       } else {
         // Has search term and enabled tags, match both search term and any enabled tag
-        return matchesSearchTerm && enabledTags.some((tag) => tags.includes(tag));
+        return (
+          matchesSearchTerm && enabledTags.some((tag) => tags.includes(tag))
+        );
       }
     });
     dispatch({ type: actionTypes.SET_FILTERED_DATA, payload: filteredData });
@@ -96,29 +106,47 @@ const App = () => {
   const isTagEnabled = (tag) => enabledTags.includes(tag);
   const filteredData = state.filteredData || [];
 
+  const openModal = (data) => {
+    setSelectedData(data);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedData(null);
+  };
+
   return (
     <>
-      <Hero/>
+      <Hero />
       <div className="container mx-auto px-4">
         <h1 className="text-2xl font-bold mb-4">Holohub Applications</h1>
 
         <div className="relative my-2">
-          <label htmlFor="name" className="absolute -top-2 left-2 inline-block bg-white px-1 text-xs font-medium text-gray-900">Application</label>
+          <label
+            htmlFor="name"
+            className="absolute -top-2 left-2 inline-block bg-white px-1 text-xs font-medium text-gray-900"
+          >
+            Search
+          </label>
           <input
             type="text"
-            placeholder="Segmentation..."
+            placeholder="Tool Segmentation..."
             value={searchTerm}
             onChange={handleSearch}
-            className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="block w-full rounded-md border-0 p-1.5 pl-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-lime-600 sm:text-sm sm:leading-6"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-x-4 text-xs">
+          <span>Popular Tags:</span>
           {allTags.map((tag) => (
             <span
               key={tag}
-              className={`relative z-10 rounded-md bg-blue-50 my-1 px-2 py-1 text-xs font-medium cursor-pointer ${
-                isTagEnabled(tag) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
+              className={`relative z-10 rounded-md my-1 px-2 py-1 text-xs font-medium cursor-pointer ${
+                isTagEnabled(tag)
+                  ? "bg-lime-500 text-white"
+                  : "bg-gray-200 text-gray-800"
               }`}
               onClick={() => handleTagClick(tag)}
             >
@@ -133,12 +161,84 @@ const App = () => {
           <p>Error: {state.error}</p>
         ) : filteredData.length > 0 ? (
           <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-gray-200 pt-2 sm:mt-4 sm:pt-4 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-            {filteredData.map((jsonData, index) => <Card key={index} data={jsonData} />)}
+            {filteredData.map((jsonData, index) => (
+              <Card key={index} data={jsonData} openModal={openModal} />
+            ))}
           </div>
         ) : (
           <p>No results found.</p>
         )}
       </div>
+      {/* Modal */}
+      <Transition.Root show={isModalOpen} as={React.Fragment}>
+        <Dialog
+          as="div"
+          className="fixed inset-0 z-10 overflow-y-auto"
+          onClose={closeModal}
+          open={isModalOpen}
+        >
+          <div className="flex items-center justify-center min-h-screen">
+            <Dialog.Overlay className="fixed inset-0 bg-black opacity-75" />
+
+            <Transition.Child
+              as={React.Fragment}
+              enter="ease-out duration-200"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-150"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel
+                className="bg-white rounded-lg shadow-lg border-2 border-gray-300 max-h-[calc(80vh)] max-w-[calc(80vw)]"
+                static
+              >
+               {selectedData && (
+                  <>
+                    <Dialog.Title className="text-lg font-bold p-4 border-b-2">
+                      {selectedData.application.name}
+                      <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
+                        <button
+                          type="button"
+                          className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-grey-500 focus:ring-offset-2"
+                          onClick={() => closeModal(true)}
+                        >
+                          <span className="sr-only">Close</span>
+                          <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                        </button>
+                      </div>
+                    </Dialog.Title>
+                    <div className="max-h-[calc(60vh)] overflow-y-auto p-4">
+                      <Dialog.Description className="mb-4">
+                        <ReactMarkdown
+                          className="markdown pre my-2 text-sm leading-6 text-gray-600 break-words"
+                          remarkPlugins={[remarkGfm]}>
+                            {selectedData.readme}
+                        </ReactMarkdown>
+                      </Dialog.Description>
+                    </div>
+                    <div className="flex justify-end p-4 border-t-2">
+                      <a className="mx-2" href={`https://github.com/nvidia-holoscan/holohub/tree/main/applications/${selectedData.application_name}`} target="_blank">
+                        <button
+                          className="bg-lime-500 text-white px-4 py-2 rounded hover:bg-lime-600 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                        >
+                          Go to App on GitHub
+                        </button>
+                      </a>
+                      <button
+                        onClick={closeModal}
+                        className="bg-lime-500 text-white px-4 py-2 rounded hover:bg-lime-600 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </>
+                )}
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </Dialog>
+      </Transition.Root>
     </>
   );
 };

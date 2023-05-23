@@ -1,0 +1,7 @@
+.markdown > * {
+  all: revert;
+}
+
+.markdown pre code {
+    white-space: pre-wrap;
+}
