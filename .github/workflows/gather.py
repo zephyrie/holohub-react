@@ -49,7 +49,7 @@ def gather_metadata(repo_path, output_file):
     with open(output_file, 'w') as output:
         json.dump(metadata, output)
 
-repo_path = 'applications'
+repo_path = 'holohub/applications'
 output_file = 'aggregate_metadata.json'
 
 gather_metadata(repo_path, output_file)
