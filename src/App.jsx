@@ -16,6 +16,7 @@ const App = () => {
   const [selectedData, setSelectedData] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Fetch data from the generated workflow JSON
   const fetchData = async () => {
     dispatch({ type: actionTypes.FETCH_DATA_START });
 
@@ -37,11 +38,12 @@ const App = () => {
     fetchData();
   }, []);
 
+  // Apply filters when search term, enabled tags, or data changes
   useEffect(() => {
     applyFilter();
   }, [searchTerm, enabledTags, state.data]);
 
-
+  // Handle initial hash change and subsequent hash changes
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
@@ -55,26 +57,27 @@ const App = () => {
         closeModal();
       }
     };
-  
+
     const handleInitialHashChange = () => {
       setTimeout(() => {
         handleHashChange();
       }, 100);
     };
-  
+
     handleInitialHashChange(); // Call the function when the component mounts to handle initial hash
-  
+
     window.addEventListener("hashchange", handleHashChange);
     return () => {
       window.removeEventListener("hashchange", handleHashChange);
     };
   }, [state.data]);
-  
 
+  // Handle search input change
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
   };
 
+  // Handle tag click
   const handleTagClick = (tag) => {
     if (enabledTags.includes(tag)) {
       setEnabledTags(enabledTags.filter((t) => t !== tag));
@@ -83,6 +86,7 @@ const App = () => {
     }
   };
 
+  // Extract all tags from the data
   const extractAllTags = (data) => {
     const tagsCountMap = new Map();
     data.forEach((item) => {
@@ -104,6 +108,7 @@ const App = () => {
     setAllTags(extractedTags);
   };
 
+  // Apply filter based on search term and enabled tags
   const applyFilter = () => {
     const filteredData = state.data.filter((item) => {
       const { readme, application } = item;
@@ -133,21 +138,27 @@ const App = () => {
     dispatch({ type: actionTypes.SET_FILTERED_DATA, payload: filteredData });
   };
 
+  // Check if a tag is enabled
   const isTagEnabled = (tag) => enabledTags.includes(tag);
+
+  // Get the filtered data
   const filteredData = state.filteredData || [];
 
+  // Open modal and update URL hash
   const openModal = (data) => {
     setSelectedData(data);
     setIsModalOpen(true);
     const cardId = `model_${data.application_name}`;
     window.location.hash = cardId;
   };
-  
+
+  // Close modal and remove hash from URL
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedData(null);
-    history.pushState("", document.title, window.location.pathname); 
+    history.pushState("", document.title, window.location.pathname);
   };
+
   
   return (
     <>
@@ -274,10 +285,10 @@ const App = () => {
       </Transition.Root>
       {/* Footer */}
       <footer aria-labelledby="footer-heading">
-        <h2 id="footer-heading" class="sr-only">Footer</h2>
-        <div class="mx-auto max-w-7xl px-6 pb-8 lg:px-8">
-          <div class="mt-16 border-t border-gray-900/10 lg:mt-24">
-            <p class="mt-8 text-gray-500 text-center">NVIDIA HoloHub</p>
+        <h2 id="footer-heading" className="sr-only">Footer</h2>
+        <div className="mx-auto max-w-7xl px-6 pb-8 lg:px-8">
+          <div className="mt-16 border-t border-gray-900/10 lg:mt-24">
+            <p className="mt-8 text-gray-500 text-center">NVIDIA HoloHub</p>
           </div>
         </div>
       </footer>
