@@ -189,17 +189,17 @@ const App = () => {
         </div>
 
         {state.loading ? (
-          <p>Loading...</p>
+          <p className="my-4">Loading...</p>
         ) : state.error ? (
-          <p>Error: {state.error}</p>
+          <p className="my-4">Error: {state.error}</p>
         ) : filteredData.length > 0 ? (
-          <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-gray-200 pt-2 sm:mt-4 sm:pt-4 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+          <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-gray-200 mb-8 pt-2 sm:mt-4 sm:pt-4 lg:mx-0 lg:max-w-none lg:grid-cols-3">
             {filteredData.map((jsonData, index) => (
               <Card key={index} data={jsonData} openModal={openModal} />
             ))}
           </div>
         ) : (
-          <p>No results found.</p>
+          <p className="my-4">No results found.</p>
         )}
       </div>
       {/* Modal */}
@@ -272,6 +272,15 @@ const App = () => {
           </div>
         </Dialog>
       </Transition.Root>
+      {/* Footer */}
+      <footer aria-labelledby="footer-heading">
+        <h2 id="footer-heading" class="sr-only">Footer</h2>
+        <div class="mx-auto max-w-7xl px-6 pb-8 lg:px-8">
+          <div class="mt-16 border-t border-gray-900/10 lg:mt-24">
+            <p class="mt-8 text-gray-500 text-center">NVIDIA HoloHub</p>
+          </div>
+        </div>
+      </footer>
     </>
   );
 };
