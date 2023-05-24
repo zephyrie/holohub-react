@@ -32,7 +32,9 @@ jobs:
         run: npm run build
 
       - name: Move aggregate_metadata.json
-        run: mv aggregate_metadata.json dist/
+        run: |
+          ls
+          mv aggregate_metadata.json dist/
 
       - name: Stage dist folder
         run: git add dist -f
@@ -42,6 +44,9 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -m "Update dist folder"
+
+      - name: Check Git Status
+        run: git status          
 
       - name: Push to gh-pages
         run: git subtree push --prefix dist origin gh-pages
