@@ -1,7 +1,7 @@
-.markdown > * {
-  all: revert;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-.markdown pre code {
-    white-space: pre-wrap;
+.prose {
+  max-width: 70vw !important;
 }

@@ -11,6 +11,7 @@ import Hero from "./Hero";
 const App = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showClearButton, setShowClearButton] = useState(false);
   const [enabledTags, setEnabledTags] = useState([]);
   const [allTags, setAllTags] = useState([]);
   const [selectedData, setSelectedData] = useState(null);
@@ -47,11 +48,20 @@ const App = () => {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
-      if (hash && hash.startsWith("#model_")) {
-        const cardId = hash.substring(7);
-        const selectedCard = state.data.find((card) => card.application_name === cardId);
-        if (selectedCard) {
-          openModal(selectedCard);
+      if (hash && hash.startsWith("#")) {
+        const cardId = hash.substring(1);
+        const cardIdParts = cardId.split("_");
+        if (cardIdParts.length >= 3) {
+          const language = cardIdParts[0];
+          const applicationName = cardIdParts.slice(2).join("_");
+          const selectedCard = state.data.find(
+            (card) =>
+              card.application.language.toLowerCase() === language &&
+              card.application_name === applicationName
+          );
+          if (selectedCard) {
+            openModal(selectedCard);
+          }
         }
       } else {
         closeModal();
@@ -74,8 +84,15 @@ const App = () => {
 
   // Handle search input change
   const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
+    const value = event.target.value;
+    setSearchTerm(value);
+    setShowClearButton(value.length > 0);
   };
+
+  const clearSearchTerm = () => {
+    setSearchTerm("");
+    setShowClearButton(false);
+  };  
 
   // Handle tag click
   const handleTagClick = (tag) => {
@@ -148,7 +165,8 @@ const App = () => {
   const openModal = (data) => {
     setSelectedData(data);
     setIsModalOpen(true);
-    const cardId = `model_${data.application_name}`;
+    const language = data.application.language.toLowerCase();
+    const cardId = `${language}_model_${data.application_name}`;
     window.location.hash = cardId;
   };
 
@@ -180,6 +198,14 @@ const App = () => {
             onChange={handleSearch}
             className="block w-full rounded-md border-0 p-1.5 pl-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-lime-600 sm:text-sm sm:leading-6"
           />
+          {showClearButton && (
+            <button
+              className="absolute top-1.5 right-2 flex items-center justify-center w-6 h-6 text-gray-500 hover:text-gray-600 focus:outline-none"
+              onClick={clearSearchTerm}
+            >
+              <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+            </button>
+          )}          
         </div>
 
         <div className="flex flex-wrap items-center gap-x-4 text-xs">
@@ -234,7 +260,7 @@ const App = () => {
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel
-                className="bg-white rounded-lg shadow-lg border-2 border-gray-300 max-h-[calc(80vh)] max-w-[calc(80vw)]"
+                className="bg-white rounded-lg shadow-lg border-2 border-gray-300 w-full max-h-[calc(80vh)] max-w-[calc(70vw)]"
                 static
               >
                {selectedData && (
@@ -252,10 +278,10 @@ const App = () => {
                         </button>
                       </div>
                     </Dialog.Title>
-                    <div className="max-h-[calc(60vh)] overflow-y-auto p-4">
+                    <div className="w-full max-h-[calc(60vh)] overflow-y-auto p-4">
                       <Dialog.Description className="mb-4">
                         <ReactMarkdown
-                          className="markdown pre my-2 text-sm leading-6 text-gray-600 break-words"
+                          className="prose pre my-2 text-sm leading-6 text-gray-600 break-words"
                           remarkPlugins={[remarkGfm]}>
                             {selectedData.readme}
                         </ReactMarkdown>
