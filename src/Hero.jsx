@@ -15,10 +15,10 @@ const Hero = () => {
     </div>
     <div className="text-center">
       <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-        NVIDIA Holohub
+        NVIDIA HoloHub
       </h1>
       <p className="mt-6 text-lg leading-8 text-gray-600">
-      Holohub is a central repository for users and developers of extensions and applications for the Holoscan Platform to share reusable components and sample applications.
+      HoloHub is a central repository for users and developers of extensions and applications for the Holoscan Platform to share reusable components and sample applications.
       </p>
       <div className="mt-10 flex items-center justify-center gap-x-6">
         <a
