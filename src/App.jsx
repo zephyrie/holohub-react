@@ -304,11 +304,13 @@ const App = () => {
                           <p>
                             <span className="font-semibold">Version:</span>{" "}
                             {selectedData.metadata.version}
-                          </p>                          
-                          <p>
-                            <span className="font-semibold">Minimum Required Version:</span>{" "}
-                            {selectedData.metadata.holoscan_sdk?.minimum_required_version}
-                          </p>
+                          </p>     
+                          {selectedData.metadata.holoscan_sdk?.minimum_required_version && (            
+                            <p>
+                              <span className="font-semibold">Minimum Required Holoscan Version:</span>{" "}
+                              {selectedData.metadata.holoscan_sdk?.minimum_required_version}
+                            </p>
+                          )}
                           {selectedData.metadata.dependencies && (
                             <>
                               {selectedData.metadata.dependencies.libraries && (
