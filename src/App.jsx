@@ -56,7 +56,7 @@ const App = () => {
           const applicationName = cardIdParts.slice(2).join("_");
           const selectedCard = state.data.find(
             (card) =>
-              card.application.language.toLowerCase() === language &&
+              card.metadata.language.toLowerCase() === language &&
               card.application_name === applicationName
           );
           if (selectedCard) {
@@ -106,9 +106,17 @@ const App = () => {
   // Extract all tags from the data
   const extractAllTags = (data) => {
     const tagsCountMap = new Map();
+
     data.forEach((item) => {
-      const { application } = item;
-      const { tags } = application;
+      const { metadata, source_folder } = item;
+      const { tags } = metadata;
+  
+      const formattedSourceFolder = source_folder
+      .charAt(0)
+      .toUpperCase() + source_folder.slice(1, -1);
+  
+      tags.unshift(formattedSourceFolder); // Include source_folder as a tag
+  
       tags.forEach((tag) => {
         if (tagsCountMap.has(tag)) {
           tagsCountMap.set(tag, tagsCountMap.get(tag) + 1);
@@ -119,7 +127,7 @@ const App = () => {
     });
 
     const filteredTags = Array.from(tagsCountMap.entries()).filter(
-      ([, count]) => count >= 3
+      ([, count]) => count >= 4
     );
     const extractedTags = filteredTags.map(([tag]) => tag).sort();
     setAllTags(extractedTags);
@@ -128,13 +136,14 @@ const App = () => {
   // Apply filter based on search term and enabled tags
   const applyFilter = () => {
     const filteredData = state.data.filter((item) => {
-      const { readme, application } = item;
-      const { tags } = application;
+      const { readme, metadata } = item;
+      const { tags } = metadata;
 
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
       const matchesSearchTerm =
         readme.toLowerCase().includes(lowerCaseSearchTerm) ||
         tags.some((tag) => tag.toLowerCase().includes(lowerCaseSearchTerm));
+
 
       if (searchTerm === "" && enabledTags.length === 0) {
         // No search term and no enabled tags, return all data
@@ -165,7 +174,7 @@ const App = () => {
   const openModal = (data) => {
     setSelectedData(data);
     setIsModalOpen(true);
-    const language = data.application.language.toLowerCase();
+    const language = data.metadata.language.toLowerCase();
     const cardId = `${language}_model_${data.application_name}`;
     window.location.hash = cardId;
   };
@@ -266,7 +275,7 @@ const App = () => {
                {selectedData && (
                   <>
                     <Dialog.Title className="text-lg font-bold p-4 border-b-2">
-                      {selectedData.application.name}
+                      {selectedData.metadata.name}
                       <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                         <button
                           type="button"
@@ -280,6 +289,55 @@ const App = () => {
                     </Dialog.Title>
                     <div className="w-full max-h-[calc(60vh)] overflow-y-auto p-4">
                       <Dialog.Description className="mb-4">
+                      {/* Model Metadata */}
+                      <section className="mb-6">
+                      <h2 className="text-2xl font-semibold mb-2 text-lime-500">Model Metadata</h2>
+                        <div className="space-y-2">
+                          {selectedData.metadata.authors && (
+                            <p>
+                              <span className="font-semibold">Authors:</span>{" "}
+                              {selectedData.metadata.authors
+                                .map((author) => author.name)
+                                .join(", ")}
+                            </p>
+                          )}
+                          <p>
+                            <span className="font-semibold">Version:</span>{" "}
+                            {selectedData.metadata.version}
+                          </p>                          
+                          <p>
+                            <span className="font-semibold">Minimum Required Version:</span>{" "}
+                            {selectedData.metadata.holoscan_sdk?.minimum_required_version}
+                          </p>
+                          {selectedData.metadata.dependencies && (
+                            <>
+                              {selectedData.metadata.dependencies.libraries && (
+                                <div>
+                                  <p className="font-semibold">Library Dependencies:</p>
+                                  <ul className="list-disc ml-6 space-y-1">
+                                    {selectedData.metadata.dependencies.libraries.map((library) => (
+                                      <li key={library.name}>{library.name}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {selectedData.metadata.dependencies.gxf_extensions && (
+                                <div>
+                                  <p className="font-semibold">GXF Extension Dependencies:</p>
+                                  <ul className="list-disc ml-6 space-y-1">
+                                    {selectedData.metadata.dependencies.gxf_extensions.map((extension) => (
+                                      <li key={extension.name}>{extension.name}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </section>
+
+                        {/* README */}
+                        <h2 className="text-2xl font-semibold mb-2 text-lime-500">Model README:</h2>
                         <ReactMarkdown
                           className="prose pre my-2 text-sm leading-6 text-gray-600 break-words"
                           remarkPlugins={[remarkGfm]}>
