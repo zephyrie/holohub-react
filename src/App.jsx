@@ -362,7 +362,7 @@ const App = () => {
                       </Dialog.Description>
                     </div>
                     <div className="flex justify-end p-4 border-t-2">
-                      <a className="mx-2" href={`https://github.com/nvidia-holoscan/holohub/tree/main/applications/${selectedData.application_name}`} target="_blank">
+                      <a className="mx-2" href={`https://github.com/nvidia-holoscan/holohub/tree/main/${selectedData.source_folder}/${selectedData.application_name}`} target="_blank">
                         <button
                           className="bg-lime-500 text-white px-4 py-2 rounded hover:bg-lime-600 focus:outline-none focus:ring-2 focus:ring-lime-500"
                         >
