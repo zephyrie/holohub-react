@@ -51,17 +51,26 @@ const App = () => {
       if (hash && hash.startsWith("#")) {
         const cardId = hash.substring(1);
         const cardIdParts = cardId.split("_");
-        if (cardIdParts.length >= 3) {
-          const language = cardIdParts[0];
-          const applicationName = cardIdParts.slice(2).join("_");
-          const selectedCard = state.data.find(
-            (card) =>
-              card.metadata.language.toLowerCase() === language &&
-              card.application_name === applicationName
-          );
-          if (selectedCard) {
-            openModal(selectedCard);
+        const cardIdPart0 = cardIdParts[0];
+        let applicationName = "";
+        debugger;
+        if (cardIdPart0 === "model") {
+          applicationName = cardIdParts.slice(1).join("_");
+        } else {
+          applicationName = cardIdParts.slice(2).join("_");
+        }
+        const selectedCard = state.data.find((card) => {
+          if (card.metadata.language) {
+            return (card.metadata.language.toLowerCase() === cardIdPart0 &&
+            card.application_name === applicationName)
+          } else {
+            return card.application_name === applicationName;
           }
+        });
+
+        if (selectedCard) {
+          debugger;
+          openModal(selectedCard);
         }
       } else {
         closeModal();
@@ -174,8 +183,13 @@ const App = () => {
   const openModal = (data) => {
     setSelectedData(data);
     setIsModalOpen(true);
-    const language = data.metadata.language.toLowerCase();
-    const cardId = `${language}_model_${data.application_name}`;
+    let cardId;
+    if (data.metadata.language) {
+      const formattedLanguage = data.metadata.language.toLowerCase();
+      cardId = `${formattedLanguage}_model_${data.application_name}`;
+    } else {
+      cardId = `model_${data.application_name}`;
+    }
     window.location.hash = cardId;
   };
 
@@ -337,7 +351,7 @@ const App = () => {
                           )}
                         </div>
                       </section>
-
+                      <div className="border-t border-gray-300 my-6" />
                         {/* README */}
                         <h2 className="text-2xl font-semibold mb-2 text-lime-500">Model README:</h2>
                         <ReactMarkdown
